@@ -1,0 +1,5 @@
+bases:
+- ../../base
+
+patchesStrategicMerge:
+- mount_k8s_conf.yaml
