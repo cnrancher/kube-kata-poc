@@ -14,5 +14,5 @@
 ```bash
 kubectl apply -k k8s/rbac/base/
 kubectl apply -k k8s/main/overlays/k8s/
-kubectl apply -f k3s/runtime/
+kubectl apply -f k8s/runtime/
 ```
