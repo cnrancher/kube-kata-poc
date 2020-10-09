@@ -29,7 +29,7 @@ verify_system() {
         HAS_SYSTEMD=true
         return
     fi
-    fatal 'Can not find systemd or openrc to use as a process supervisor for k3s'
+    fatal 'Can not find systemd or openrc to use as a process supervisor for containerd'
 }
 
 # --- set arch and suffix, fatal if architecture not supported ---
@@ -64,12 +64,13 @@ setup_env() {
         FILE_CONTAINERD_SERVICE=/etc/init.d/containerd
     fi
 
-    cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+    cat <<EOF | $SUDO tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
     echo 'net.ipv4.ip_forward = 1' >> /etc/sysctl.conf
-    sudo sysctl --system
+    $SUDO sysctl --system
+    $SUDO sysctl vm.nr_hugepages=1024
 }
 
 # --- create temporary directory and cleanup when done ---
