@@ -72,7 +72,7 @@ EOF
     $SUDO systemctl restart kubelet
 }
 
-# --- verify an executabe kubeadm binary is installed ---
+# --- verify an executable kubeadm binary is installed ---
 verify_kubeadm_is_executable() {
     if [ ! -x ${BIN_DIR}/kubeadm ]; then
         fatal "Executable kubeadm binary not found at ${BIN_DIR}/kubeadm"

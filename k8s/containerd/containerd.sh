@@ -122,7 +122,7 @@ setup_binary() {
     $SUDO chmod a+x /usr/local/bin
 }
 
-# --- verify an executabe containerd binary is installed ---
+# --- verify an executable containerd binary is installed ---
 verify_containerd_is_executable() {
     if [ ! -x ${BIN_DIR}/containerd ]; then
         fatal "Executable containerd binary not found at ${BIN_DIR}/containerd"
