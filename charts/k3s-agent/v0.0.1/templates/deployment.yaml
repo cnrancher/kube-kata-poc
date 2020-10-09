@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "k3s-agent.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ template "k3s-agent.name" . }}
+    chart: {{ template "k3s-agent.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "k3s-agent.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "k3s-agent.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if eq .Values.runtimeClass "kata-qemu-virtiofs" }}
+      runtimeClassName: {{ .Values.runtimeClass }}
+      {{- end }}
+      containers:
+      - env:
+        - name: K3S_TOKEN
+          value: {{ .Values.k3sToken }}
+        - name: K3S_URL
+          value: {{ .Values.k3sURL }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: {{ .Chart.Name }}
+        command:
+        - k3s
+        - agent
+        - --snapshotter=native
+        resources:
+          limits:
+            cpu: "{{ .Values.cpuLimit }}"
+            memory: {{ .Values.memLimit }}Gi
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+      restartPolicy: Always
+

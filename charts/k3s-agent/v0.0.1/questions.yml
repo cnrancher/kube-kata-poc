@@ -1,0 +1,70 @@
+labels:
+  io.cattle.role: project # options are cluster/project
+categories:
+  - k3s
+namespace: k3s-clusters
+questions:
+- variable: defaultImage
+  default: true
+  description: "Use default Docker image"
+  label: Use Default Image
+  type: boolean
+  show_subquestion_if: false
+  group: "Container Images"
+  subquestions:
+  - variable: image.repository
+    default: "niusmallnan/k3s"
+    description: "Docker image repository"
+    type: string
+    label: Image Repository
+  - variable: image.tag
+    default: "v1.19.2-k3s1-1"
+    description: "Docker image tag"
+    type: string
+    label: Image Tag
+- variable: cpuLimit
+  default: 1
+  min: 1
+  max: 8
+  description: "CPU resource limit"
+  label: CPU Limit(Count)
+  type: int
+  group: "Settings"
+- variable: memLimit
+  default: 2
+  min: 1
+  max: 8
+  description: "Memory resource limit"
+  label: Memory Limit(Gi)
+  type: int
+  group: "Settings"
+- variable: runtimeClass
+  default: "kata-qemu-virtiofs"
+  description: "kata runtime classname"
+  label: Runtime ClassName
+  type: enum
+  group: "Settings"
+  options:
+  - "kata-qemu-virtiofs"
+  - "runc"
+- variable: replicaCount
+  type: int
+  default: 1
+  min: 1
+  max: 5
+  description: "Specify replica count of agent"
+  label: K3s agent replica count
+  group: "Settings"
+- variable: k3sURL
+  default: ""
+  description: "k3s server URL"
+  label: K3s Server URL
+  type: string
+  group: "k3s server info"
+- variable: k3sToken
+  default: ""
+  description: "k3s server token"
+  label: K3s Server Token
+  type: string
+  group: "k3s server info"
+

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "k3s-server.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ template "k3s-server.name" . }}
+    chart: {{ template "k3s-server.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "k3s-server.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "k3s-server.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if eq .Values.runtimeClass "kata-qemu-virtiofs" }}
+      runtimeClassName: {{ .Values.runtimeClass }}
+      {{- end }}
+      containers:
+      - image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: {{ .Chart.Name }}
+        command:
+        - k3s
+        - server
+        - --snapshotter=native
+        - --service-cidr={{ .Values.serviceCIDR }}
+        - --cluster-cidr={{ .Values.clusterCIDR }}
+        resources:
+          limits:
+            cpu: "{{ .Values.cpuLimit }}"
+            memory: {{ .Values.memLimit }}Gi
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+      restartPolicy: Always
+
