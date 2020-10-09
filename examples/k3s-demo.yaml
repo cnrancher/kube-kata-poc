@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k3s-demo
+  namespace: default
+  labels:
+    name: k3s-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: k3s-demo
+  template:
+    metadata:
+      labels:
+        name : k3s-demo
+    spec:
+      runtimeClassName: kata-qemu-virtiofs
+      containers:
+      - image: rancher/k3s:v1.19.2-k3s1
+        imagePullPolicy: IfNotPresent
+        name: k3s-demo
+        command:
+        - k3s
+        - server
+        - --snapshotter=native
+        - --service-cidr=10.45.0.0/16
+        - --cluster-cidr=10.44.0.0/16
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+      restartPolicy: Always
