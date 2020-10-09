@@ -67,6 +67,9 @@ EOF
     $SUDO sed 's/vxlan/host-gw/' -i kube-flannel.yml
     kubectl apply -f kube-flannel.yml
     kubectl taint nodes --all node-role.kubernetes.io/master-
+    $SUDO sed 's/- --port=0/# - --port=0/' -i /etc/kubernetes/manifests/kube-controller-manager.yaml
+    $SUDO sed 's/- --port=0/# - --port=0/' -i /etc/kubernetes/manifests/kube-scheduler.yaml
+    $SUDO systemctl restart kubelet
 }
 
 # --- verify an executabe kubeadm binary is installed ---
