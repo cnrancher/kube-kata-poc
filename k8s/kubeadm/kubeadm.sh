@@ -2,6 +2,10 @@
 set -e
 
 BIN_DIR=/usr/bin
+network=$1
+if [ -z $network ]; then
+    network="flannel"
+fi
 
 # --- helper functions for logs ---
 info()
@@ -53,7 +57,7 @@ setup_binary() {
     $SUDO cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
 deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF
-    $SUDO apt-get update && $SUDO apt-get install -y kubelet kubeadm kubectl && $SUDO apt-mark hold kubelet kubeadm kubectl
+    $SUDO apt-get update && $SUDO apt-get install -y kubelet=1.18.10-00 kubeadm=1.18.10-00 kubectl=1.18.10-00 && $SUDO apt-mark hold kubelet kubeadm kubectl
     verify_kubeadm_is_executable
     $SUDO mkdir -p  /etc/systemd/system/kubelet.service.d/
     $SUDO cat << EOF | sudo tee /etc/systemd/system/kubelet.service.d/0-containerd.conf
@@ -61,11 +65,20 @@ EOF
 Environment="KUBELET_EXTRA_ARGS=--container-runtime=remote --runtime-request-timeout=15m --container-runtime-endpoint=unix:///run/containerd/containerd.sock"
 EOF
     $SUDO systemctl daemon-reload
-    $SUDO kubeadm init --cri-socket /run/containerd/containerd.sock --pod-network-cidr=10.244.0.0/16
+    $SUDO kubeadm init --config config.yaml
     $SUDO mkdir -p $HOME/.kube && $SUDO cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && $SUDO chown $(id -u):$(id -g) $HOME/.kube/config
-    $SUDO curl -o kube-flannel.yml -sfL https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-    $SUDO sed 's/vxlan/host-gw/' -i kube-flannel.yml
-    kubectl apply -f kube-flannel.yml
+    case $network in
+        "flannel")
+            info "Installing flannel CNI for kubernetes"
+            $SUDO curl -o kube-flannel.yml -sfL https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+            $SUDO sed 's/vxlan/host-gw/' -i kube-flannel.yml
+            kubectl apply -f kube-flannel.yml
+            ;;
+        "macvlan")
+            info "Installing macvlan + flannel CNI for kubernetes"
+            $SUDO kubectl apply -f cni/multus-flannel.yaml
+            ;;
+    esac 
     kubectl taint nodes --all node-role.kubernetes.io/master-
     $SUDO sed 's/- --port=0/# - --port=0/' -i /etc/kubernetes/manifests/kube-controller-manager.yaml
     $SUDO sed 's/- --port=0/# - --port=0/' -i /etc/kubernetes/manifests/kube-scheduler.yaml
